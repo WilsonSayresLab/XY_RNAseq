@@ -5,7 +5,6 @@ Alignment and filtering effects on RNAseq analysis on the X and Y chromosome
 
 ### Differential expression work flow 
 
-# SAMPLES
 ## Download Data
 The Genotyping-Tissue Expression (GTEx) Project was initiated to give researchers a resource to analyze RNAseq data among human individuals across multiple tissues (GTEx Consortium 2015, 2013). GTEx Project includes 544 recently deceased donors over 53 tissues types for 8,555 total samples, with multiple tissues collected per individual. RNA was performed using a non-strand-specific with a poly-A selection using Illumina TrueSeq and resulted in an average of 50 million 76 base pairs (bp) paired-end reads per sample. 
 
@@ -33,7 +32,7 @@ scp	-> secure copy linux command
 /Project/fastqc/sampleID_fastqc.html ->	path to where the files are located
 /Users/Desktop -> path to where you would like to copy the files to 
 
-# Trim for quality 
+## Trim for quality 
 Since it has been found that raw untrimmed data leads to errors in read-mapping (Del Fabbro et al. 2013), we tested the effects of trimming versus no-trimming on read abundance, and 
 approach that scans reads in the 5’-3’ direction and calculates the average quality of a group of 4 bases, read groups on the 3’-end whose quality scores were lower than the phred score 30 were removed.
 
@@ -55,7 +54,9 @@ int: slidingwindow:4:27 leading10 trailing25 minlen40 phred33
 mod: slidingwindow:4:25 leading10 trailing25 minlen40 phred33
 
 `java -jar /project/tools/trimmomatic-0.36.jar PE -phred33 /project/fastq/sampleID_input_1.fastq /project/fastq/sampleID_input_2.fastq /project/fastq/std_trim/sampleID_output_1_paired.fastq /project/fastq/std_trim/sampleID_output_1_unpaired.fastq /project/fastq/std_trim/sampleID_output_2_paired.fastq /project/fastq/std_trim/sampleID_output_2_unpaired.fastq ILLUMINACLIP:/project/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:10 TRAILING:25 SLIDINGWINDOW:4:30 MINLEN:40`
+
 `java -jar /project/tools/trimmomatic-0.36.jar PE -phred33 /project/fastq/sampleID_input_1.fastq /project/fastq/sampleID_input_2.fastq /project/fastq/int_trim/sampleID_output_1_paired.fastq /project/fastq/int_trim/sampleID_output_1_unpaired.fastq /project/fastq/int_trim/sampleID_output_2_paired.fastq /project/fastq/int_trim/sampleID_output_2_unpaired.fastq ILLUMINACLIP:/project/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:10 TRAILING:25 SLIDINGWINDOW:4:27 MINLEN:40`
+
 `java -jar /project/tools/trimmomatic-0.36.jar PE -phred33 /project/fastq/sampleID_input_1.fastq /project/fastq/sampleID_input_2.fastq /project/fastq/mod_trim/sampleID_output_1_paired.fastq /project/fastq/mod_trim/sampleID_output_1_unpaired.fastq /project/fastq/mod_trim/sampleID_output_2_paired.fastq /project/fastq/mod_trim/sampleID_output_2_unpaired.fastq ILLUMINACLIP:/project/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:10 TRAILING:25 SLIDINGWINDOW:4:25 MINLEN:40`
 
 java -> indicates that this is a java program and will require java in order to run
@@ -72,15 +73,118 @@ SLIDINGWINDOW:4:30 -> Scan the read with a 4-base wide sliding window, cutting w
 MINLEN:40 -> Drop the read if it is below a specified length of 40
 adapters-> add pathway to adapters directory
 
+## Create fastqc reports on trimmed files
+Fastqc reads sequence data from high throughput sequencers and runs a set of quality checks to produce a report. Best reports are those whose "per base sequence quality" are included in the green area of the graph & kmer content is good or average. This command will create two outputs: an .html file & an .zip file. Will output sampleID_fastqc.html and sampleID_fastqc.zip files
+
+`fastqc sampleID_output_1_paired.fastq`
+`fastqc sampleID_output_1_unpaired.fastq`
+`fastqc sampleID_output_2_paired.fastq`
+`fastqc sampleID_output_2_unpaired.fastq`
+(done for each trimming parameter)
+fastqc -> Babraham bioinformatics program that that checks for quality of reads 
+sampleID.fastq ->	path and name of sampleID in fastq format, may also be in fastq.gz format
+
+Move fastqc reports to desktop to visualize them as you can't open html in a terminal. Open new terminal as this will not work if logged into a HPC (high performance computing) cluster
+`scp user@saguaro.a2c2.asu.edu:/Project/fastqc/sampleID_fastqc.html /Users/Desktop/`
+scp	-> secure copy linux command                  
+/Project/fastqc/sampleID_fastqc.html ->	path to where the files are located
+/Users/Desktop ->	path to where you would like to copy the files to 
+
+## Create reference genome
 
 
 
-## Aligning to the reference genomes 
+
+
+
+
+
+
+## Aligning to the reference genomes using STAR
+STAR read aligner is a 2 pass process. The user supplies the genome files generated in the pervious step (generate genome indexes), as well as the RNA-seq reads (sequences) in the form of FASTA or FASTQ files. STAR maps the reads to the genome, and writes several output files, such as alignments (SAM/BAM), mapping summary statistics, splice junctions, unmapped reads, signal (wiggle) tracks etc. Mapping is controlled by a variety of input parameters (options). STAR highly recommends using --sjdbGTFfile which specifies the path to the file with annotated transcripts in the standard GTF format. Where STAR will extract splice junctions from this file and use them to greatly improve accuracy of the mapping. While this is optional, and STAR can be run without annotations, using annotations is highly recommended whenever they are available.However this option should not be included for projects that include hybrids, as this might cause a bias towards the reference. 
+
+Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
+`STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_YPARsMasked/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_YPARsMasked/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_M_std_YPARsMasked. --runThreadN 4`
+
+`STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_wholeGenome/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_wholeGenome/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_M_std_wholeGenome. --runThreadN 4`
+
+Align female samples to the default genome and the Y_masked genome (for all trimming parameters)
+`STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_Ymasked/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_Ymasked/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_F_std_Ymasked. --runThreadN 4`
+
+`STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_wholeGenome/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_wholeGenome/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_F_std_wholeGenome. --runThreadN 4`
+
+STAR 									                        STAR read aligner package
+--genomeDir 							                        define where the genome is location, /star_genome 
+Project/refrence_genome										path and directory to reference genome
+--genomeLoad													mode of shared memory usage for the genome files
+LoadAndKeep													load genome into shared and keep it in memory after run
+--sjdbGTFfile													path to the GTF file with annotations
+--readFilesIn 						                        if pair end reads, include path to both reads with a " " space inbetween _1 _2, /geuvadis_fastq/sampleID_1.fastq /home/kcolney/map_geuvadis/geuvadis_fastq/sampleID_2.fastq 
+sampleID_1.fastq												name and path to sample in fastq format. If paired end samples include both pairs and separate with a space i.e (sample_1.fastq sample_2.fastq)
+--outSAMtype 							                        indicate which output format, BAM unsorted
+BAM Unsorted													output unsorted Aligned.out.bam file. The paired ends of an alignment are always adjacent, and multiple alignments of a read are adjacent as well. This ”unsorted” file can be directly used with downstream software such as HTseq, without the need of name sorting. The order of the reads will match that of the input FASTQ(A) files only if one thread is used
+--sjdbFileChrStartEnd					                        path to the pass_1.SJ.out.tab files made in the first pass
+sampleID1_pass1.SJ.out.tab									4 columns separated by tabs: Chr \tab Start \tab End \tab Strand=+/-/. Here Start and End are first and last bases of the introns (1-based chromosome coordinates). This file can be used in addition to the --sjdbGTFfile, in which case STAR will extract junctions from both files.
+sampleID2_pass1.SJ.out.tab									List all the samples from the first pass or all the samples in a group (i.e population, cases and controls, hybrids, males and females)
+--outFileNamePrefix 					                        define the sample id prefix, sampleID_pass1. (bam, will be added by the STAR program)
+--runThreadN 							                        for computing purpose allocate the number of threads, 14 
+
+
+## Align to the reference genomes using HISAT2
 using -q to specify reads are fastq, --phred33 to indicate that input qualities are ASCII chars equal to the Phred+33 encoding which is used by the GTEx Illumina processing pipeline. HISAT2 parameters -p 8 launched 8 number of parallel search threads which increased alignment throughput by approximately a multiple of the number of threads, and finally -x followed by the basename of the index for the reference genome being either Def, Y-masked or YPARs-masked.
 
+Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
+`hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_YPARsMasked_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_YPARsMasked.sam`
 
+`hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_wholeGenome_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_wholeGenome.sam`
+
+Align female samples to the default genome and the Y_masked genome (for all trimming parameters)
+`hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_Ymasked_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_Ymasked.sam`
+
+`hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_wholeGenome_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_wholeGenome.sam`
+
+Convert Sam files to Bam format for further analysis (for all trimming parameters)
+`samtools view -b SRR1095695_stdtrim_HISAT_YPARs_masked.sam > SRR1095695_M_stdtrim_HISAT_YPARs_masked.bam`
+`samtools view -b SRR1095695_stdtrim_HISAT_wholeGenome.sam > SRR1095695_M_stdtrim_HISAT_wholeGenome.bam`
+`samtools view -b SRR598695_stdtrim_HISAT_Y_masked.sam > SRR598695_F_stdtrim_HISAT_Y_masked.bam`
+`samtools view -b SRR598695_stdtrim_HISAT_wholeGenome.sam > SRR598695_F_stdtrim_HISAT_wholeGenome.bam`
+
+hisat2														HISAT2 read aligner package
+--dta-cufflinks												makes SAM file compatible with cufflinks
+-q
+--phred33
+-p
+8
+-x
+Project/refrence_genome										path and directory to reference genome
+-s
+no
+-1
+sampleID_1.fastq												name and path to first sample in fastq format
+-2
+sampleID_2.fastq												name and path to second sample in fastq format
+-S
+sampeID.sam													path and directoryto sam file 
+samtools														used to convert SAM to BAM file format
+view
+-b
 
 All post alignment processing described above was completed for the brain cortex, lung and whole blood tissues that were aligned to both the default genome and to the reference genome informed on the sex chromosome complement of the subject.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Generating gene read counts 
 
