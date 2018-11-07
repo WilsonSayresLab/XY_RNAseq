@@ -10,7 +10,7 @@ The Genotyping-Tissue Expression (GTEx) Project was initiated to give researcher
 
 In sra (sequence read archive, known as short-read archive) format 
 Include GEO accession number 
-"wget ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRR1850937.sra"
+`wget ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRR1850937.sra`
 
 ## Trim for quality 
 Since it has been found that raw untrimmed data leads to errors in read-mapping (Del Fabbro et al. 2013), we tested the effects of trimming versus no-trimming on read abundance, and 
