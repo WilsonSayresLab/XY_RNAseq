@@ -3,22 +3,46 @@ Alignment and filtering effects on RNAseq analysis on the X and Y chromosome
 
 ### RNAseq work flow
 
-### Differential expression work flow 
+### Differential expression work flow
 
-## Download Data
+### Contents:
+1. Download data 
+2. convert SRA to be FASTQ format
+3. Create FASTQC reports
+4. Trim for quality
+5. Create FASTQC reports on trimmed files
+6. Obtain reference genome and gene annotation files
+7. Generate genome indexes
+8. Align to the reference genomes using STAR
+9. Align to the reference genomes using HISAT2
+10. Generate stats on initial BAM files
+11. Sort BAM files 
+12. Generate stats on sorted BAM files
+13. Mark duplicates
+14. Generate stats on marked BAM files
+15. Add or replace read groups 
+16. Generate stats on read group bam files
+17. Index BAM files
+18. MULTIQC 
+19. Create Subject ID file
+20. Create 
+21. 
+22. Differential expression using LimmaVoom
+
+## 1. Download Data
 The Genotyping-Tissue Expression (GTEx) Project was initiated to give researchers a resource to analyze RNAseq data among human individuals across multiple tissues (GTEx Consortium 2015, 2013). GTEx Project includes 544 recently deceased donors over 53 tissues types for 8,555 total samples, with multiple tissues collected per individual. RNA was performed using a non-strand-specific with a poly-A selection using Illumina TrueSeq and resulted in an average of 50 million 76 base pairs (bp) paired-end reads per sample. 
 
 In sra (sequence read archive, known as short-read archive) format. Include GEO accession number 
 `wget ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRR1850937.sra`
 
-## Convert sra to fastq
+## 2. Convert sra to fastq
 Files will need to be converted from sra to fastq for downstream analysis. FASTQ format is a text-based format for storing both a biological sequence (usually nucleotide sequence) and its corresponding quality scores. Both the sequence letter and quality score are each encoded with a single ASCII character for brevity.
 
 `fastq-dump sampleID.sra`
 fastq-dump -> program part of the SRA toolkit that converts SRA files to fastq format
 sampleID.sra -> path and name of sample.sra that you would like to convert to fastq format 
 
-## Create fastqc reports
+## 3. Create fastqc reports
 Fastqc reads raw sequence data from high throughput sequencers and runs a set of quality checks to produce a report. Best reports are those whose "per base sequence quality" are included in the green area of the graph & kmer content is good or average.
 
 `fastqc sampleID.fastq`
@@ -32,7 +56,7 @@ scp	-> secure copy linux command
 /Project/fastqc/sampleID_fastqc.html ->	path to where the files are located
 /Users/Desktop -> path to where you would like to copy the files to 
 
-## Trim for quality 
+## 4. Trim for quality 
 Since it has been found that raw untrimmed data leads to errors in read-mapping (Del Fabbro et al. 2013), we tested the effects of trimming versus no-trimming on read abundance, and 
 approach that scans reads in the 5’-3’ direction and calculates the average quality of a group of 4 bases, read groups on the 3’-end whose quality scores were lower than the phred score 30 were removed.
 
@@ -73,7 +97,7 @@ SLIDINGWINDOW:4:30 -> Scan the read with a 4-base wide sliding window, cutting w
 MINLEN:40 -> Drop the read if it is below a specified length of 40
 adapters-> add pathway to adapters directory
 
-## Create fastqc reports on trimmed files
+## 5. Create fastqc reports on trimmed files
 Fastqc reads sequence data from high throughput sequencers and runs a set of quality checks to produce a report. Best reports are those whose "per base sequence quality" are included in the green area of the graph & kmer content is good or average. This command will create two outputs: an .html file & an .zip file. Will output sampleID_fastqc.html and sampleID_fastqc.zip files
 
 `fastqc sampleID_output_1_paired.fastq`
@@ -90,17 +114,12 @@ scp	-> secure copy linux command
 /Project/fastqc/sampleID_fastqc.html ->	path to where the files are located
 /Users/Desktop ->	path to where you would like to copy the files to 
 
-## Create reference genome
+## 6. Obtain reference genome and gene annotation files
+
+## 7. Generate genome indexes
 
 
-
-
-
-
-
-
-
-## Aligning to the reference genomes using STAR
+## 8. Aligning to the reference genomes using STAR
 STAR read aligner is a 2 pass process. The user supplies the genome files generated in the pervious step (generate genome indexes), as well as the RNA-seq reads (sequences) in the form of FASTA or FASTQ files. STAR maps the reads to the genome, and writes several output files, such as alignments (SAM/BAM), mapping summary statistics, splice junctions, unmapped reads, signal (wiggle) tracks etc. Mapping is controlled by a variety of input parameters (options). STAR highly recommends using --sjdbGTFfile which specifies the path to the file with annotated transcripts in the standard GTF format. Where STAR will extract splice junctions from this file and use them to greatly improve accuracy of the mapping. While this is optional, and STAR can be run without annotations, using annotations is highly recommended whenever they are available.However this option should not be included for projects that include hybrids, as this might cause a bias towards the reference. 
 
 Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
@@ -130,7 +149,7 @@ sampleID2_pass1.SJ.out.tab									List all the samples from the first pass or a
 --runThreadN 							                        for computing purpose allocate the number of threads, 14 
 
 
-## Align to the reference genomes using HISAT2
+## 9. Align to the reference genomes using HISAT2
 using -q to specify reads are fastq, --phred33 to indicate that input qualities are ASCII chars equal to the Phred+33 encoding which is used by the GTEx Illumina processing pipeline. HISAT2 parameters -p 8 launched 8 number of parallel search threads which increased alignment throughput by approximately a multiple of the number of threads, and finally -x followed by the basename of the index for the reference genome being either Def, Y-masked or YPARs-masked.
 
 Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
@@ -171,7 +190,7 @@ view
 
 All post alignment processing described above was completed for the brain cortex, lung and whole blood tissues that were aligned to both the default genome and to the reference genome informed on the sex chromosome complement of the subject.
 
-## Generate stats on initial BAM files
+## 10. Generate stats on initial BAM files
 `bamtools stats -in sampleID.bam > sampleID.txt`
 
 bamtools											            package 
@@ -195,7 +214,7 @@ Read 1:
 Read 2:            
 Singletons:   
 
-## Sort BAM files
+## 11. Sort BAM files
 For each sample, sort the BAM file because BAM files are compressed. Sorting helps to give a better compression ratio because similar sequences are grouped together. An appropriate @HD-SO sort order header tag will be added or an existing one updated if necessary.
 
 `bamtools sort -in sampleID.bam -out sampleID.sorted.bam`
@@ -207,7 +226,7 @@ sampleID.bam						                            path and name to bam file
 -out 									                        indicated output file
 sampleID.sorted.bam
 
-## Generate stats on sorted BAM files
+## 12. Generate stats on sorted BAM files
 For each sample check the stats of reads on the sorted BAM files. Will print basic statistics from input BAM file(s). Compare sorted.bam stats to the original .bam stats, there should be no differences between them. We do this to step (bamtools stats) every time we do anything to our bam files as a quality control check
 
 `bamtools stats -in sampleID.sorted.bam > sampleID.sorted.txt`
@@ -219,7 +238,7 @@ sampleID.bam										            path and name to bam file
 sampleID.txt                                            indicated output file name
 
 
-## Mark duplicates
+## 13. Mark duplicates
 Mark duplicates: "Flags" where the duplicate reads are
 
 `$java -Xmx8g -jar picard.jar MarkDuplicates INPUT=sampleID.sorted.bam OUTPUT=sampleID.sorted.markdup.bam METRICS_FILE=sampleID.markdup.picardMetrics.txt REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT`
@@ -235,14 +254,14 @@ REMOVE_DUPLICATES=false 							            If true do not write duplicates to th
 ASSUME_SORTED=true 								            BAM files are sorted because we sorted them in step 6
 VALIDATION_STRINGENCY=LENIENT						            setting stringency to SILENT can improve performance when processing a BAM file in which variable-length data (read, qualities, tags) do not otherwise need to be decoded.
 
-## Generate stats on marked BAM files
+## 14. Generate stats on marked BAM files
 For each sample get the read stats for the mark duplicates BAM files 
 
 `bamtools stats -in sampleID.sorted.markdup.bam > sampleID.sorted.markdup.txt`
 
 Compare stat results for each sample to the original bam file (sanity check: is there the same number of reads as the original BAM file?). If there is more than 15% of the reads being marked as duplicates may need to consider removing that sample
 
-## Add or replace read groups
+## 15. Add or replace read groups
 For each sample, add a read group to the mark duplicate BAM files (a read group is a "tag" such as a sample ID)
 
 `$java -Xmx8g -jar picard.jar AddOrReplaceReadGroups INPUT=sampleID.sorted.markdup.bam OUTPUT=sampleID.sorted.markdup.addReadGr.bam RGLB=sampleID RGPL=machineUsed RGPU=laneUsed RGSM=sampleName RGCN=location RGDS=species VALIDATION_STRINGENCY=LENIENT`
@@ -262,12 +281,12 @@ RGCN= 											            Read Group sequencing center name Default value: nu
 RGDS=												            Read Group description Default value: null (speciesName)
 VALIDATION_STRINGENCY=LENIENT
 
-## Generate stats on read group bam files
+## 16. Generate stats on read group bam files
 For each sample get the read stats for the remove duplicates and add read groups BAM files. Statistics on the BAM files should be the same as before the previous step when read groups were modified. Compare stat results for each sample to the markdup.bam file (sanity check: is there the same number of reads as the original BAM file?)
 
 `bamtools stats -in sampleID.sorted.markdup.addReadGr.bam`
 
-## Index BAM files
+## 17. Index BAM files
 For each sample index the processed BAM files that are sorted, have marked duplicates, and have read groups added. These will be used to identify callable loci. Indexing is used to "sort" by chromosome and region. Output will be sampleID.sorted.markdup.addReadGr.bam.bai
 
 `$bamtools index -in sampleID.sorted.markdup.addReadGr.bam`
@@ -277,7 +296,15 @@ index												            Generates index for BAM file
 -in												            indicates input file
 sampleID.sorted.markdup.addReadGrbam	
 
-## Differential expresison using LimmaVoom
+## 18. MULTIQC
+
+## 19. Create subject ID files
+
+## 20. 
+
+## 21. 
+
+## 22. Differential expression using LimmaVoom
 Designed to assign mapped reads or fragments from pair-end genomic features from genes, exons, and promoters, featureCounts with the limma/voom (Law et al. 2014) differential expression pipeline is highly rated as one of the best-performing pipelines for the analyses of RNAseq data (SEQC/MAQC-III Consortium 2014) and was therefore chosen for our analysis.  
 
 A gene-level information file associated with the rows of the counts matrix was created using the Homo_sapiens.GRCh38.89.gtf gene annotation file, which was used in the subread featureCounts to generate the gene count data, the gene-level.csv file contains unique gene ids for each row and the corresponding chromosome location of the gene. The gene order is the same in both the annotation Homo_sapiens.GRCh38.89.gtf and the DGEList gene-level.csv data object. 
