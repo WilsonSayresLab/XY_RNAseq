@@ -24,9 +24,9 @@ Alignment and filtering effects on RNAseq analysis on the X and Y chromosome
 16. Generate stats on read group bam files
 17. Index BAM files
 18. MULTIQC 
-19. Create Subject ID file
-20. Create 
-21. 
+19. Create chromosome CSV file
+20. Create phenotype TSV file
+21. Create counts TSV file
 22. Differential expression using LimmaVoom
 
 ## 1. Download Data
@@ -241,7 +241,7 @@ sampleID.txt                                            indicated output file na
 ## 13. Mark duplicates
 Mark duplicates: "Flags" where the duplicate reads are
 
-`$java -Xmx8g -jar picard.jar MarkDuplicates INPUT=sampleID.sorted.bam OUTPUT=sampleID.sorted.markdup.bam METRICS_FILE=sampleID.markdup.picardMetrics.txt REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT`
+`java -Xmx8g -jar picard.jar MarkDuplicates INPUT=sampleID.sorted.bam OUTPUT=sampleID.sorted.markdup.bam METRICS_FILE=sampleID.markdup.picardMetrics.txt REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT`
 
 java												            program called 
 -Xmx8g 											            declares memory 
@@ -264,7 +264,7 @@ Compare stat results for each sample to the original bam file (sanity check: is 
 ## 15. Add or replace read groups
 For each sample, add a read group to the mark duplicate BAM files (a read group is a "tag" such as a sample ID)
 
-`$java -Xmx8g -jar picard.jar AddOrReplaceReadGroups INPUT=sampleID.sorted.markdup.bam OUTPUT=sampleID.sorted.markdup.addReadGr.bam RGLB=sampleID RGPL=machineUsed RGPU=laneUsed RGSM=sampleName RGCN=location RGDS=species VALIDATION_STRINGENCY=LENIENT`
+`java -Xmx8g -jar picard.jar AddOrReplaceReadGroups INPUT=sampleID.sorted.markdup.bam OUTPUT=sampleID.sorted.markdup.addReadGr.bam RGLB=sampleID RGPL=machineUsed RGPU=laneUsed RGSM=sampleName RGCN=location RGDS=species VALIDATION_STRINGENCY=LENIENT`
 
 java												            program called 
 -Xmx8g 											            declares memory 
@@ -289,7 +289,7 @@ For each sample get the read stats for the remove duplicates and add read groups
 ## 17. Index BAM files
 For each sample index the processed BAM files that are sorted, have marked duplicates, and have read groups added. These will be used to identify callable loci. Indexing is used to "sort" by chromosome and region. Output will be sampleID.sorted.markdup.addReadGr.bam.bai
 
-`$bamtools index -in sampleID.sorted.markdup.addReadGr.bam`
+`bamtools index -in sampleID.sorted.markdup.addReadGr.bam`
 
 bamtools											            package 
 index												            Generates index for BAM file
@@ -297,12 +297,49 @@ index												            Generates index for BAM file
 sampleID.sorted.markdup.addReadGrbam	
 
 ## 18. MULTIQC
+`cd /project/MULTIQC/ 
+multiqc sampleID1_output_unpaired_fastqc/ sampleID2_output_unpaired_fastqc/ sampleID3_output_unpaired_fastqc/ etc...`
 
-## 19. Create subject ID files
+## 19. Create gene chromosome CSV file
 
-## 20. 
+create a file containing each gene of interest, and which chromosome(S) it is located on. There will be one file total. 
 
-## 21. 
+gene	Chr
+DDX11L1	1
+WASH7P	1
+MIR6859-1	1
+MIR1302-2HG	1
+MIR1302-2	1
+FAM138A	1
+AL627309.6	1
+OR4G11P	1
+OR4F5	1
+AL627309.1	1
+AL627309.3	1
+
+## 20. Create phenotype CSV file
+
+create a file containing each sampleID, sex of the sample, genome the sample is aligned to, and which aligner was used. Thre will be a different file for each tissue used. 
+
+sampleID	sex	genome	aligner
+SRR1  male  default HI
+SRR1  male  SS  HI
+SRR1  male  default STAR
+SRR1  male  SS  STAR
+SRR2  female  default HI
+SRR2  female  SS  HI
+SRR2  female  default STAR
+SRR2  female  SS   STAR
+
+## 21. Create counts TSV file
+
+Create a file containing each sampleID.sorted.markdup.addReadGr.bam file for a specific tissue. Use all sample for that specific tissue including male, female, STAR, HISAT, whole genome, and sex specific. there will be a different file for each tissue. 
+
+sampleID1 sampleID2 sampleID3 SampleID4
+5 10  4 3
+0 0 0 0
+3 0 6 8
+8 0 6 4
 
 ## 22. Differential expression using LimmaVoom
 Designed to assign mapped reads or fragments from pair-end genomic features from genes, exons, and promoters, featureCounts with the limma/voom (Law et al. 2014) differential expression pipeline is highly rated as one of the best-performing pipelines for the analyses of RNAseq data (SEQC/MAQC-III Consortium 2014) and was therefore chosen for our analysis.  
@@ -310,6 +347,8 @@ Designed to assign mapped reads or fragments from pair-end genomic features from
 A gene-level information file associated with the rows of the counts matrix was created using the Homo_sapiens.GRCh38.89.gtf gene annotation file, which was used in the subread featureCounts to generate the gene count data, the gene-level.csv file contains unique gene ids for each row and the corresponding chromosome location of the gene. The gene order is the same in both the annotation Homo_sapiens.GRCh38.89.gtf and the DGEList gene-level.csv data object. 
 
 The limma/voom vebayesfit is an empirical Bayes moderation that takes information from all genes to obtain a more precise estimate of gene-wise variability and is recommended for RNAseq analysis (Law et al. 2014). 
+
+LimmaVoom uses an R script to generate a heat map which can be found here: (link to github script??)
 
 
 
