@@ -12,7 +12,7 @@ Alignment and filtering effects on RNAseq analysis on the X and Y chromosome
 4. Trim for quality
 5. Create FASTQC reports on trimmed files
 6. Obtain reference genome and gene annotation files
-7. Generate genome indexes
+7. Create reference genomes
 8. Align to the reference genomes using STAR
 9. Align to the reference genomes using HISAT2
 10. Generate stats on initial BAM files
