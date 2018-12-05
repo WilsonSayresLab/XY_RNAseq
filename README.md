@@ -217,7 +217,7 @@ Align female samples to the default genome and the Y_masked genome (for all trim
 
 `STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_wholeGenome/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_wholeGenome/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_F_std_wholeGenome. --runThreadN 4`
 
-- STAR -mSTAR read aligner package
+- STAR - STAR read aligner package
 - --genomeDir - define where the genome is location, star_genome 
 - Project/refrence_genome - path and directory to reference genome
 - --genomeLoad - mode of shared memory usage for the genome files
