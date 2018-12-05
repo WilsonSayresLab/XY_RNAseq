@@ -39,8 +39,8 @@ In sra (sequence read archive, known as short-read archive) format. Include GEO 
 Files will need to be converted from sra to fastq for downstream analysis. FASTQ format is a text-based format for storing both a biological sequence (usually nucleotide sequence) and its corresponding quality scores. Both the sequence letter and quality score are each encoded with a single ASCII character for brevity.
 
 `fastq-dump sampleID.sra`
-fastq-dump -> program part of the SRA toolkit that converts SRA files to fastq format
-sampleID.sra -> path and name of sample.sra that you would like to convert to fastq format 
+- fastq-dump -> program part of the SRA toolkit that converts SRA files to fastq format
+- sampleID.sra -> path and name of sample.sra that you would like to convert to fastq format 
 
 ## 3. Create fastqc reports
 Fastqc reads raw sequence data from high throughput sequencers and runs a set of quality checks to produce a report. Best reports are those whose "per base sequence quality" are included in the green area of the graph & kmer content is good or average.
