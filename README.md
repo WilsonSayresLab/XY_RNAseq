@@ -109,14 +109,17 @@ Fastqc reads sequence data from high throughput sequencers and runs a set of qua
 `fastqc sampleID_output_2_paired.fastq`
 `fastqc sampleID_output_2_unpaired.fastq`
 (done for each trimming parameter)
-fastqc -> Babraham bioinformatics program that that checks for quality of reads 
-sampleID.fastq ->	path and name of sampleID in fastq format, may also be in fastq.gz format
+
+- fastqc - Babraham bioinformatics program that that checks for quality of reads 
+- sampleID.fastq - path and name of sampleID in fastq format, may also be in fastq.gz format
 
 Move fastqc reports to desktop to visualize them as you can't open html in a terminal. Open new terminal as this will not work if logged into a HPC (high performance computing) cluster
+
 `scp user@saguaro.a2c2.asu.edu:/Project/fastqc/sampleID_fastqc.html /Users/Desktop/`
-scp	-> secure copy linux command                  
-/Project/fastqc/sampleID_fastqc.html ->	path to where the files are located
-/Users/Desktop ->	path to where you would like to copy the files to 
+
+- scp - secure copy linux command                  
+- /Project/fastqc/sampleID_fastqc.html - path to where the files are located
+- /Users/Desktop - path to where you would like to copy the files to 
 
 ## 6. Obtain reference genome and gene annotation files
 
@@ -203,136 +206,140 @@ Ymasked
 STAR read aligner is a 2 pass process. The user supplies the genome files generated in the pervious step (generate genome indexes), as well as the RNA-seq reads (sequences) in the form of FASTA or FASTQ files. STAR maps the reads to the genome, and writes several output files, such as alignments (SAM/BAM), mapping summary statistics, splice junctions, unmapped reads, signal (wiggle) tracks etc. Mapping is controlled by a variety of input parameters (options). STAR highly recommends using --sjdbGTFfile which specifies the path to the file with annotated transcripts in the standard GTF format. Where STAR will extract splice junctions from this file and use them to greatly improve accuracy of the mapping. While this is optional, and STAR can be run without annotations, using annotations is highly recommended whenever they are available.However this option should not be included for projects that include hybrids, as this might cause a bias towards the reference. 
 
 Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
+
 `STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_YPARsMasked/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_YPARsMasked/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_M_std_YPARsMasked. --runThreadN 4`
 
 `STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_wholeGenome/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_wholeGenome/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_M_std_wholeGenome. --runThreadN 4`
 
 Align female samples to the default genome and the Y_masked genome (for all trimming parameters)
+
 `STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_Ymasked/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_Ymasked/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_F_std_Ymasked. --runThreadN 4`
 
 `STAR --genomeDir /project/reference_genome/gencode.GRCh38.p7_wholeGenome/ --sjdbGTFfile /project/reference_genome/gencode.GRCh38.p7_wholeGenome/gencode.v25.chr_patch_hapl_scaff.annotation.gtf --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --readFilesIn /project/fastq/std_trim/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq /project/fastq/std_trim/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq --outSAMtype BAM Unsorted --outFileNamePrefix /project/STAR/sampleID_STAR_F_std_wholeGenome. --runThreadN 4`
 
-STAR 									                        STAR read aligner package
---genomeDir 							                        define where the genome is location, /star_genome 
-Project/refrence_genome										path and directory to reference genome
---genomeLoad													mode of shared memory usage for the genome files
-LoadAndKeep													load genome into shared and keep it in memory after run
---sjdbGTFfile													path to the GTF file with annotations
---readFilesIn 						                        if pair end reads, include path to both reads with a " " space inbetween _1 _2, /geuvadis_fastq/sampleID_1.fastq /home/kcolney/map_geuvadis/geuvadis_fastq/sampleID_2.fastq 
-sampleID_1.fastq												name and path to sample in fastq format. If paired end samples include both pairs and separate with a space i.e (sample_1.fastq sample_2.fastq)
---outSAMtype 							                        indicate which output format, BAM unsorted
-BAM Unsorted													output unsorted Aligned.out.bam file. The paired ends of an alignment are always adjacent, and multiple alignments of a read are adjacent as well. This ”unsorted” file can be directly used with downstream software such as HTseq, without the need of name sorting. The order of the reads will match that of the input FASTQ(A) files only if one thread is used
---sjdbFileChrStartEnd					                        path to the pass_1.SJ.out.tab files made in the first pass
-sampleID1_pass1.SJ.out.tab									4 columns separated by tabs: Chr \tab Start \tab End \tab Strand=+/-/. Here Start and End are first and last bases of the introns (1-based chromosome coordinates). This file can be used in addition to the --sjdbGTFfile, in which case STAR will extract junctions from both files.
-sampleID2_pass1.SJ.out.tab									List all the samples from the first pass or all the samples in a group (i.e population, cases and controls, hybrids, males and females)
---outFileNamePrefix 					                        define the sample id prefix, sampleID_pass1. (bam, will be added by the STAR program)
---runThreadN 							                        for computing purpose allocate the number of threads, 14 
+- STAR -mSTAR read aligner package
+- --genomeDir - define where the genome is location, star_genome 
+- Project/refrence_genome - path and directory to reference genome
+- --genomeLoad - mode of shared memory usage for the genome files
+- LoadAndKeep - load genome into shared and keep it in memory after run
+- --sjdbGTFfile - path to the GTF file with annotations
+- --readFilesIn - if pair end reads, include path to both reads with a " " space inbetween _1 _2, /geuvadis_fastq/sampleID_1.fastq /home/kcolney/map_geuvadis/geuvadis_fastq/sampleID_2.fastq 
+- sampleID_1.fastq - name and path to sample in fastq format. If paired end samples include both pairs and separate with a space i.e (sample_1.fastq sample_2.fastq)
+- --outSAMtype - indicate which output format, BAM unsorted
+- BAM Unsorted - output unsorted Aligned.out.bam file. The paired ends of an alignment are always adjacent, and multiple alignments of a read are adjacent as well. This ”unsorted” file can be directly used with downstream software such as HTseq, without the need of name sorting. The order of the reads will match that of the input FASTQ(A) files only if one thread is used
+- --sjdbFileChrStartEnd	- path to the pass_1.SJ.out.tab files made in the first pass
+- sampleID1_pass1.SJ.out.tab - 4 columns separated by tabs: Chr \tab Start \tab End \tab Strand=+/-/. Here Start and End are first and last bases of the introns (1-based chromosome coordinates). This file can be used in addition to the --sjdbGTFfile, in which case STAR will extract junctions from both files.
+- sampleID2_pass1.SJ.out.tab - List all the samples from the first pass or all the samples in a group (i.e population, cases and controls, hybrids, males and females)
+- --outFileNamePrefix - define the sample id prefix, sampleID_pass1. (bam, will be added by the STAR program)
+- --runThreadN - for computing purpose allocate the number of threads, 14 
 
 
 ## 9. Align to the reference genomes using HISAT2
 using -q to specify reads are fastq, --phred33 to indicate that input qualities are ASCII chars equal to the Phred+33 encoding which is used by the GTEx Illumina processing pipeline. HISAT2 parameters -p 8 launched 8 number of parallel search threads which increased alignment throughput by approximately a multiple of the number of threads, and finally -x followed by the basename of the index for the reference genome being either Def, Y-masked or YPARs-masked.
 
 Align male samples to the default genome and the YPARs_masked genome (for all trimming parameters)
+
 `hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_YPARsMasked_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_YPARsMasked.sam`
 
 `hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_wholeGenome_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_male_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_wholeGenome.sam`
 
 Align female samples to the default genome and the Y_masked genome (for all trimming parameters)
+
 `hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_Ymasked_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_Ymasked.sam`
 
 `hisat2 --dta-cufflinks -q --phred33 -p 8 -x /project/reference_genome/GRCh38_wholeGenome_reference_HISAT2 -s no -1 /project/fastq/sampleID_1_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -2 /project/fastq/sampleID_2_trim_Phred33_MinLen50_SlidWin4:30_Lead10_Trail25_female_paired.fastq -S /project/HISAT2/sampleID_stdtrim_HISAT_wholeGenome.sam`
 
 Convert Sam files to Bam format for further analysis (for all trimming parameters)
+
 `samtools view -b SRR1095695_stdtrim_HISAT_YPARs_masked.sam > SRR1095695_M_stdtrim_HISAT_YPARs_masked.bam`
 `samtools view -b SRR1095695_stdtrim_HISAT_wholeGenome.sam > SRR1095695_M_stdtrim_HISAT_wholeGenome.bam`
 `samtools view -b SRR598695_stdtrim_HISAT_Y_masked.sam > SRR598695_F_stdtrim_HISAT_Y_masked.bam`
 `samtools view -b SRR598695_stdtrim_HISAT_wholeGenome.sam > SRR598695_F_stdtrim_HISAT_wholeGenome.bam`
 
-hisat2														HISAT2 read aligner package
---dta-cufflinks												makes SAM file compatible with cufflinks
--q
---phred33
--p
-8
--x
-Project/refrence_genome										path and directory to reference genome
--s
-no
--1
-sampleID_1.fastq												name and path to first sample in fastq format
--2
-sampleID_2.fastq												name and path to second sample in fastq format
--S
-sampeID.sam													path and directoryto sam file 
-samtools														used to convert SAM to BAM file format
-view
--b
+- hisat2 - HISAT2 read aligner package
+- --dta-cufflinks - makes SAM file compatible with cufflinks
+- -q -
+- --phred33
+- -p
+- 8
+- -x
+- Project/refrence_genome - path and directory to reference genome
+- -s
+- no
+- -1
+- sampleID_1.fastq - name and path to first sample in fastq format
+- -2
+- sampleID_2.fastq - name and path to second sample in fastq format
+- -S
+- sampeID.sam -	path and directoryto sam file 
+- samtools - used to convert SAM to BAM file format
+- view
+- -b
 
 All post alignment processing described above was completed for the brain cortex, lung and whole blood tissues that were aligned to both the default genome and to the reference genome informed on the sex chromosome complement of the subject.
 
 ## 10. Generate stats on initial BAM files
 `bamtools stats -in sampleID.bam > sampleID.txt`
 
-bamtools											            package 
-stats												            command to get general alignment statistics
--in												            indicates input file
-sampleID.bam										            path and name to bam file 
-">"   										                directs output     
-sampleID_pass2.txt                                            indicated output file name
+- bamtools - package 
+- stats	- command to get general - alignment statistics
+- -in - indicates input file
+- sampleID.bam	- path and name to bam file 
+- ">" - directs output     
+- sampleID_pass2.txt - indicated output file name
 
 Will print basic statistics from input BAM file(s)
-Total reads:       
-Mapped reads:      
-Forward strand:    
-Reverse strand:    
-Failed QC:         
-Duplicates:        
-Paired-end reads:
-'Proper-pairs':    
-Both pairs mapped: 
-Read 1:            
-Read 2:            
-Singletons:   
+- Total reads:       
+- Mapped reads:      
+- Forward strand:    
+- Reverse strand:    
+- Failed QC:         
+- Duplicates:        
+- Paired-end reads:
+- 'Proper-pairs':    
+- Both pairs mapped: 
+- Read 1:            
+- Read 2:            
+- Singletons:   
 
 ## 11. Sort BAM files
 For each sample, sort the BAM file because BAM files are compressed. Sorting helps to give a better compression ratio because similar sequences are grouped together. An appropriate @HD-SO sort order header tag will be added or an existing one updated if necessary.
 
 `bamtools sort -in sampleID.bam -out sampleID.sorted.bam`
 
-bamtools								                        package 
-sort								                            command to add header tags
--in									                        indicates input file
-sampleID.bam						                            path and name to bam file 
--out 									                        indicated output file
-sampleID.sorted.bam
+- bamtools - package 
+- sort - command to add header tags
+- -in - indicates input file
+- sampleID.bam	- path and name to bam file 
+- -out - indicates output file
+- sampleID.sorted.bam - output file
 
 ## 12. Generate stats on sorted BAM files
 For each sample check the stats of reads on the sorted BAM files. Will print basic statistics from input BAM file(s). Compare sorted.bam stats to the original .bam stats, there should be no differences between them. We do this to step (bamtools stats) every time we do anything to our bam files as a quality control check
 
 `bamtools stats -in sampleID.sorted.bam > sampleID.sorted.txt`
-bamtools											            package 
-stats												            command to get general alignment statistics
--in												            indicates input file
-sampleID.bam										            path and name to bam file 
-">"												                directs output     
-sampleID.txt                                            indicated output file name
-
+- bamtools - package 
+- stats	- command to get general - alignment statistics
+- -in - indicates input file
+- sampleID.bam	- path and name to bam file 
+- ">" - directs output     
+- sampleID_pass2.txt - indicated output file name
 
 ## 13. Mark duplicates
 Mark duplicates: "Flags" where the duplicate reads are
 
 `java -Xmx8g -jar picard.jar MarkDuplicates INPUT=sampleID.sorted.bam OUTPUT=sampleID.sorted.markdup.bam METRICS_FILE=sampleID.markdup.picardMetrics.txt REMOVE_DUPLICATES=false ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT`
 
-java												            program called 
--Xmx8g 											            declares memory 
-picard.jar 										            path to picard jar file 
-MarkDuplicates 									            command to create sequence dictionary 
-INPUT=											            path to input file, sorted bam file per sample	
-OUTPUT= 											            path and name or output file .markdup to indicate this file will contain duplicates that have been marked
-METRICS_FILE=										            file to write duplication metrics to save as sampleID.markdup.picardMetrics.txt
-REMOVE_DUPLICATES=false 							            If true do not write duplicates to the output file instead of writing them with appropriate flags set. Default value: false. This option can be set to 'null' to clear the default value. Possible values: {true, false}
-ASSUME_SORTED=true 								            BAM files are sorted because we sorted them in step 6
-VALIDATION_STRINGENCY=LENIENT						            setting stringency to SILENT can improve performance when processing a BAM file in which variable-length data (read, qualities, tags) do not otherwise need to be decoded.
+- java - program
+- -Xmx8g - declares memory 
+- picard.jar - path to picard jar file 
+- MarkDuplicates - command to create sequence dictionary 
+- INPUT= - path to input file, sorted bam file per sample	
+- OUTPUT= - path and name or output file .markdup to indicate this file will contain duplicates that have been marked
+- METRICS_FILE=	- file to write duplication metrics to save as sampleID.markdup.picardMetrics.txt
+- REMOVE_DUPLICATES=false - If true do not write duplicates to the output file instead of writing them with appropriate flags set. Default value: false. This option can be set to 'null' to clear the default value. Possible values: {true, false}
+- ASSUME_SORTED=true - BAM files are sorted because we sorted them in step 6
+- VALIDATION_STRINGENCY=LENIENT	- setting stringency to SILENT can improve performance when processing a BAM file in which variable-length data (read, qualities, tags) do not otherwise need to be decoded.
 
 ## 14. Generate stats on marked BAM files
 For each sample get the read stats for the mark duplicates BAM files 
