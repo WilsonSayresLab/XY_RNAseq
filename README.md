@@ -346,6 +346,13 @@ For each sample get the read stats for the mark duplicates BAM files
 
 `bamtools stats -in sampleID.sorted.markdup.bam > sampleID.sorted.markdup.txt`
 
+- bamtools - package 
+- stats	- command to get general - alignment statistics
+- -in - indicates input file
+- sampleID.bam	- path and name to bam file 
+- ">" - directs output     
+- sampleID_pass2.txt - indicated output file name
+
 Compare stat results for each sample to the original bam file (sanity check: is there the same number of reads as the original BAM file?). If there is more than 15% of the reads being marked as duplicates may need to consider removing that sample
 
 ## 15. Add or replace read groups
@@ -353,35 +360,42 @@ For each sample, add a read group to the mark duplicate BAM files (a read group 
 
 `java -Xmx8g -jar picard.jar AddOrReplaceReadGroups INPUT=sampleID.sorted.markdup.bam OUTPUT=sampleID.sorted.markdup.addReadGr.bam RGLB=sampleID RGPL=machineUsed RGPU=laneUsed RGSM=sampleName RGCN=location RGDS=species VALIDATION_STRINGENCY=LENIENT`
 
-java												            program called 
--Xmx8g 											            declares memory 
-picard.jar 										            path to picard jar file 
-AddOrReplaceReadGroups							            Replaces all read groups in the INPUT file with a single new read group and assigns all reads to this read group in the OUTPUT BAM
-INPUT=											            path to input file, sorted bam file per sample	
-OUTPUT= 											            path and name or output file .markdup to indicate this file will contain duplicates that have been marked
-RGLB=												            Read Group Library Required (sampleID)
-RGID=															Read Group sample ID
-RGPL=												            Read Group platform (e.g. illumina, solid) Required 
-RGPU=	 											            Read Group platform unit (eg. run barcode) Required	(laneUsed)
-RGSM=	 											            Read Group sample name Required (sampleName or sampleID)
-RGCN= 											            Read Group sequencing center name Default value: null (i.e. ASU)
-RGDS=												            Read Group description Default value: null (speciesName)
-VALIDATION_STRINGENCY=LENIENT
+- java - program called 
+- Xmx8g - declares memory 
+- picard.jar - path to picard jar file 
+- AddOrReplaceReadGroups - Replaces all read groups in the INPUT file with a single new read group and assigns all reads to this read group in the OUTPUT BAM
+- INPUT= - path to input file, sorted bam file per sample	
+- OUTPUT= - path and name or output file .markdup to indicate this file will contain duplicates that have been marked
+- RGLB=	- Read Group Library Required (sampleID)
+- RGID=	- Read Groupsample ID
+- RGPL=	- Read Group platform (e.g. illumina, solid) Required 
+- RGPU=	- Read Group platform unit (eg. run barcode) Required	(laneUsed)
+- RGSM=	- Read Group sample name Required (sampleName or sampleID)
+- RGCN= - Read Group sequencing center name Default value: null (i.e. ASU)
+- RGDS=	- Read Group description Default value: null (speciesName)
+- VALIDATION_STRINGENCY=LENIENT
 
 ## 16. Generate stats on read group bam files
 For each sample get the read stats for the remove duplicates and add read groups BAM files. Statistics on the BAM files should be the same as before the previous step when read groups were modified. Compare stat results for each sample to the markdup.bam file (sanity check: is there the same number of reads as the original BAM file?)
 
 `bamtools stats -in sampleID.sorted.markdup.addReadGr.bam`
 
+- bamtools - package 
+- stats	- command to get general - alignment statistics
+- -in - indicates input file
+- sampleID.bam	- path and name to bam file 
+- ">" - directs output     
+- sampleID_pass2.txt - indicated output file name
+
 ## 17. Index BAM files
 For each sample index the processed BAM files that are sorted, have marked duplicates, and have read groups added. These will be used to identify callable loci. Indexing is used to "sort" by chromosome and region. Output will be sampleID.sorted.markdup.addReadGr.bam.bai
 
 `bamtools index -in sampleID.sorted.markdup.addReadGr.bam`
 
-bamtools											            package 
-index												            Generates index for BAM file
--in												            indicates input file
-sampleID.sorted.markdup.addReadGrbam	
+- bamtools - package 
+- index	- Generates index for BAM file
+- -in - indicates input file
+- sampleID.sorted.markdup.addReadGrbam - output file
 
 ## 18. MULTIQC
 `cd /project/MULTIQC/ 
