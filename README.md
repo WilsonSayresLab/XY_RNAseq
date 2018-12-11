@@ -405,42 +405,42 @@ multiqc sampleID1_output_unpaired_fastqc/ sampleID2_output_unpaired_fastqc/ samp
 
 create a file containing each gene of interest, and which chromosome(S) it is located on. There will be one file total. 
 
-gene	Chr
-DDX11L1	1
-WASH7P	1
-MIR6859-1	1
-MIR1302-2HG	1
-MIR1302-2	1
-FAM138A	1
-AL627309.6	1
-OR4G11P	1
-OR4F5	1
-AL627309.1	1
-AL627309.3	1
+- gene	Chr
+- DDX11L1	1
+- WASH7P	1
+- MIR6859-1	1
+- MIR1302-2HG	1
+- MIR1302-2	1
+- FAM138A	1
+- AL627309.6	1
+- OR4G11P	1
+- OR4F5	1
+- AL627309.1	1
+- AL627309.3	1
 
 ## 20. Create phenotype CSV file
 
 create a file containing each sampleID, sex of the sample, genome the sample is aligned to, and which aligner was used. Thre will be a different file for each tissue used. 
 
-sampleID	sex	genome	aligner
-SRR1  male  default HI
-SRR1  male  SS  HI
-SRR1  male  default STAR
-SRR1  male  SS  STAR
-SRR2  female  default HI
-SRR2  female  SS  HI
-SRR2  female  default STAR
-SRR2  female  SS   STAR
+- sampleID	sex	genome	aligner
+- SRR1  male  default HI
+- SRR1  male  SS  HI
+- SRR1  male  default STAR
+- SRR1  male  SS  STAR
+- SRR2  female  default HI
+- SRR2  female  SS  HI
+- SRR2  female  default STAR
+- SRR2  female  SS   STAR
 
 ## 21. Create counts TSV file
 
 Create a file containing each sampleID.sorted.markdup.addReadGr.bam file for a specific tissue. Use all sample for that specific tissue including male, female, STAR, HISAT, whole genome, and sex specific. there will be a different file for each tissue. 
 
-sampleID1 sampleID2 sampleID3 SampleID4
-5 10  4 3
-0 0 0 0
-3 0 6 8
-8 0 6 4
+- sampleID1 sampleID2 sampleID3 SampleID4
+- 5 10  4 3
+- 0 0 0 0
+- 3 0 6 8
+- 8 0 6 4
 
 ## 22. Differential expression using LimmaVoom
 Designed to assign mapped reads or fragments from pair-end genomic features from genes, exons, and promoters, featureCounts with the limma/voom (Law et al. 2014) differential expression pipeline is highly rated as one of the best-performing pipelines for the analyses of RNAseq data (SEQC/MAQC-III Consortium 2014) and was therefore chosen for our analysis.  
